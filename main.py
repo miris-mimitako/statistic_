@@ -1,12 +1,20 @@
 import argparse
 from datetime import datetime
+import json
+
 from modules import scatter, read_csv, general_stat
+
 
 class Main:
   # init read parser arguments
   def __init__(self, parser) -> None:
     # args path of file
     parser.add_argument("--path", type=str, default="path", help="This is path of file")
+    parser.add_argument("--sheet_name", type=str, default="Sheet1", help="This is sheet name of file xlsx") # args xlsx sheet name
+    parser.add_argument("-c", type=str, metavar="C", default="comment", help="This is comment")
+    parser.add_argument("-s", type=str, metavar="S", default="scatter_plot", help="Generate scatter plot with numerical data")
+    
+    
     args = parser.parse_args()
     if args.path is None:
       print ("Please input path of file")
@@ -17,23 +25,31 @@ class Main:
     elif "xlsx" in args.path:
       print (args.path)
     
-    parser.add_argument("-s", type=str, metavar="S", default="scatter_plot", help="This is scatter plot")
-    
-    result = {}
+    dict_result = {}
     
     # sequence of function
     if "csv" in args.path:
       df = read_csv.read_csv(args.path)
     elif "xlsx" in args.path:
-      df = read_csv.read_excel(args.path)
-   
-    result.update(general_stat.general_stat(df))
+      df = read_csv.read_excel(args.path, args.sheet_name)
     
+    dict_result.update(general_stat.general_stat(df))
+    
+    # comment
+    comment = {"comment":args.c}
+    dict_result.update(comment)
+    
+    # record file path
+    file_path = {"file_path":args.path}
+    dict_result.update(file_path)
+    
+    json_result = json.dumps(dict_result)
     date_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     
+    
     # write file json
-    with open (date_str + "_" + "data.json", "w") as f:
-      f.write(result.to_json())
+    with open ("public/"+ date_str + "_" + "data.json", "w") as f:
+      f.write(json_result)
       
 
     
