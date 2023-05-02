@@ -1,5 +1,6 @@
-num,val
-1,2
-2,3
-3,4
-4,5
+num,val,str
+1,2,"blue"
+2,3,"red"
+3,4,"red"
+4,,"green"
+5,6,"blue"

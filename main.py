@@ -1,9 +1,10 @@
 import argparse
 from datetime import datetime
 import json
-
-from modules import scatter, read_csv, general_stat
-
+import pandas as pd
+from modules import graph, read_csv, general_stat
+import os
+import pathlib
 
 class Main:
   # init read parser arguments
@@ -13,7 +14,7 @@ class Main:
     parser.add_argument("--sheet_name", type=str, default="Sheet1", help="This is sheet name of file xlsx") # args xlsx sheet name
     parser.add_argument("-c", type=str, metavar="C", default="comment", help="This is comment")
     parser.add_argument("-s", type=str, metavar="S", default="scatter_plot", help="Generate scatter plot with numerical data")
-    
+    parser.add_argument("--count", type=int, metavar="EA", default=10, help="Top N of categorical data") # general stat
     
     args = parser.parse_args()
     if args.path is None:
@@ -34,7 +35,13 @@ class Main:
       df = read_csv.read_excel(args.path, args.sheet_name)
     
     dict_result.update(general_stat.pick_up_key(df)) # columns name
-    dict_result.update(general_stat.general_stat(df)) # general stat
+    dict_result.update(general_stat.general_stat(df, count=args.count)) # general stat
+    
+    # generate folder in public with os module
+    date_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    save_dir = "public/" + date_str
+    os.makedirs(save_dir, exist_ok=True)
+    
     
     # comment
     comment = {"comment":args.c}
@@ -44,16 +51,18 @@ class Main:
     file_path = {"file_path":args.path}
     dict_result.update(file_path)
     
-    print(dict_result)
     json_result = json.dumps(dict_result)
-    date_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     
     
     # write file json
-    with open ("public/"+ date_str + "_" + "data.json", "w") as f:
+    with open (save_dir + "/" + "basic-stat-data.json", "w") as f:
       f.write(json_result)
-      
-
+    
+    def histogram(df:pd.DataFrame, save_dir:str):
+      graph.histogram(df, save_dir)
+    
+    def scatter_plot(df:pd.DataFrame):
+      pass
     
 
 # if name == main
