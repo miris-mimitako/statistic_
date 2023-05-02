@@ -33,7 +33,8 @@ class Main:
     elif "xlsx" in args.path:
       df = read_csv.read_excel(args.path, args.sheet_name)
     
-    dict_result.update(general_stat.general_stat(df))
+    dict_result.update(general_stat.pick_up_key(df)) # columns name
+    dict_result.update(general_stat.general_stat(df)) # general stat
     
     # comment
     comment = {"comment":args.c}
@@ -43,6 +44,7 @@ class Main:
     file_path = {"file_path":args.path}
     dict_result.update(file_path)
     
+    print(dict_result)
     json_result = json.dumps(dict_result)
     date_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     
