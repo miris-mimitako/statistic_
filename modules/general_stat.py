@@ -12,7 +12,7 @@ def general_stat(df: pd.DataFrame, count=10):
             for x, y in df[key_name].value_counts().head(count).items():
                 result[key_name]["item_list"].update({x: y})
             nan_count = df[key_name].isnull().sum()
-            result[key_name].update({"count": int(len(df[key_name]) -int(nan_count))})
+            result[key_name].update({"count": int(len(df[key_name]) - int(nan_count))})
             result[key_name].update({"count_nan": int(nan_count)})
             result[key_name].update({"type": "categorical data"})
             result[key_name].update({"data_type": str(df[key_name].dtype)})
@@ -24,7 +24,9 @@ def general_stat(df: pd.DataFrame, count=10):
                 for x, y in df[key_name].value_counts().head(count).items():
                     result[key_name]["item_list"].update({x: y})
                 nan_count = df[key_name].isnull().sum()
-                result[key_name].update({"count": int(len(df[key_name]) -int(nan_count))})
+                result[key_name].update(
+                    {"count": int(len(df[key_name]) - int(nan_count))}
+                )
                 result[key_name].update({"count_nan": int(nan_count)})
                 result[key_name].update({"type": "categorized numeric data"})
                 result[key_name].update({"data_type": str(df[key_name].dtype)})
@@ -40,17 +42,33 @@ def general_stat(df: pd.DataFrame, count=10):
                     scale=stats.sem(df_series),
                 )
                 nan_count = df[key_name].isnull().sum()
+                result[key_name].update({"count_nan": int(nan_count)})
                 result[key_name].update({"ci95": ci95})
                 if not nan_count:
-                    result[key_name].update({"ci95_comment": "95% confidence interval is calculated from all data."})
+                    result[key_name].update(
+                        {
+                            "ci95_comment": "95% confidence interval is calculated from all data."
+                        }
+                    )
                 else:
-                    result[key_name].update({"ci95_comment": "95% confidence interval is calculated from all data without Nan. Remove Nan with df.dropna()"})
+                    result[key_name].update(
+                        {
+                            "ci95_comment": "95% confidence interval is calculated from all data without Nan. Remove Nan with df.dropna()"
+                        }
+                    )
                 result[key_name].update({"ci95": ci95})
-                result[key_name].update({"count_nan": int(nan_count)})
+                stat, p = stats.shapiro(df[key_name].dropna())
+                result[key_name].update({"shapiro": {"stat": stat, "p": p}})
+                if p < 0.05:
+                    result[key_name].update(
+                        {"shapiro_comment": "The data is not normally distributed."}
+                    )
+                else:
+                    result[key_name].update(
+                        {"shapiro_comment": "The data is normally distributed."}
+                    )
                 result[key_name].update({"type": "numerical data"})
                 result[key_name].update({"data_type": str(df[key_name].dtype)})
-
-    print(result)
     return result
 
 

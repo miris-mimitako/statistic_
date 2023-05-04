@@ -7,6 +7,8 @@ import os
 import pathlib
 from argparse import ArgumentParser
 import textwrap
+import glob
+import shutil
 
 
 class Main:
@@ -17,12 +19,6 @@ class Main:
         parser.add_argument(
             "--path", type=str, default="path", help="This is path of file"
         )
-        parser.add_argument(
-            "--sheet_name",
-            type=str,
-            default="Sheet1",
-            help="This is sheet name of file xlsx",
-        )  # args xlsx sheet name
         help_text_method = """
         Method: default - all functions are process on each column.
                 relation - relation analysis on each column
@@ -44,14 +40,46 @@ class Main:
             help="Generate scatter plot with numerical data",
         )
         parser.add_argument(
-            "--count",
+            "-sheet_name",
+            type=str,
+            default="Sheet1",
+            help="This is sheet name of file xlsx",
+        )  # args xlsx sheet name
+        parser.add_argument(
+            "-count",
             type=int,
             metavar="EA",
             default=10,
             help="Top N of categorical data",
         )  # general stat
-
+        parser.add_argument(
+            "-y",
+            type=str,
+            default="",
+            help="y is dependent variable or target variable for relation analysis ",
+        )
+        parser.add_argument(
+            "-d",
+            type=str,
+            default="",
+            help="Caution: delete all files in public folder. If you want to delete, please input '-d delete'",
+        )
         args = parser.parse_args()
+        if args.d == "delete":
+            judge = input("Are you sure to delete all files in public folder? (yes/no)")
+            if "y" in judge:
+                if not os.path.exists("public"):
+                    print("public folder is not exist")
+                    return
+                files = glob.glob("public/*/")
+                for f in files:
+                    shutil.rmtree(f)
+                print("delete all files in public folder")
+                return
+            else:
+                print("cancel delete all files in public folder")
+                return
+
         if args.path is None:
             print("Please input path of file")
         if not "csv" and "xlsx" in args.path:
@@ -98,6 +126,8 @@ class Main:
 
     def default_function(self, df, save_dir, dict_result):
         self.histogram(df, save_dir, dict_result)
+        self.cumulative_plot(df, save_dir, dict_result)
+        self.qq_plot(df, save_dir, dict_result)
 
     def relation_function(self, df, save_dir, dict_result):
         relation_stat.relation(
@@ -105,7 +135,6 @@ class Main:
             save_dir,
             dict_result,
         )
-        # 離散値とCategorizedについては分離する必要がある。
 
     def histogram(self, df, save_dir, dict_result):
         graph.histogram(df, save_dir, dict_result)
@@ -113,9 +142,15 @@ class Main:
     def scatter_plot(self, df: pd.DataFrame):
         pass
 
+    def cumulative_plot(self, df, save_dir, dict_result):
+        graph.cumulative_distribution_function(df, save_dir, dict_result)
+
+    def qq_plot(self, df, save_dir, dict_result):
+        graph.qq_plot(df, save_dir, dict_result)
+
     def closing_function(self, save_dir, dict_result):
         json_result = json.dumps(dict_result)
-        with open(save_dir + "/" + "basic-stat-data.json", "w") as f:
+        with open(os.path.join(save_dir, "basic-stat-data.json"), "w") as f:
             f.write(json_result)
 
     def __del__(self):

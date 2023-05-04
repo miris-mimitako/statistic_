@@ -35,9 +35,26 @@ def relation_numerical_data(
             if col == col2:
                 continue
             else:
-                r, p = stats.pearsonr(r_df[col], r_df[col2])
+                slope, intercept, r, p, std_err = stats.linregress(
+                    r_df[col], r_df[col2]
+                )
                 dict_result["correlation"].update(
-                    {col + "-" + col2: {"r": r, "r2": r**2, "p": p}}
+                    {
+                        col
+                        + "-"
+                        + col2
+                        + "-linear": {
+                            "fx": "y = " + str(slope) + "x + " + str(intercept)
+                        }
+                    }
+                )
+                dict_result["correlation"].update(
+                    {
+                        col
+                        + "-"
+                        + col2
+                        + "-stats": {"r": r, "r2": r**2, "p": p, "std_err": std_err}
+                    }
                 )
 
                 graph.scatter_plot(df, save_dir, dict_result, [(col, col2)])
