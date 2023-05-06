@@ -16,6 +16,7 @@ def relation(df: pd.DataFrame, save_dir: str, dict_result: dict):
             list_num_column.append(col)
 
     relation_numerical_data(df, list_num_column, list_cat_column, dict_result, save_dir)
+    grouped_stat(df, list_num_column, list_cat_column, dict_result, save_dir)
 
     # make relation matrix
 
@@ -58,3 +59,28 @@ def relation_numerical_data(
                 )
 
                 graph.scatter_plot(df, save_dir, dict_result, [(col, col2)])
+
+
+def grouped_stat(
+    df: pd.DataFrame,
+    list_num_column: list,
+    list_cat_column: list,
+    dict_result: dict,
+    save_dir: str,
+):
+    for col in list_cat_column:
+        for col2 in list_num_column:
+            grouped = df.groupby(col)[col2]
+            dict_result[col2].update(
+                {
+                    col
+                    + "-grouped_stat": {
+                        "mean": grouped.mean().head(10).to_dict(),
+                        "median": grouped.median().head(10).to_dict(),
+                        "std": grouped.std().head(10).to_dict(),
+                        "min": grouped.min().head(10).to_dict(),
+                        "max": grouped.max().head(10).to_dict(),
+                        "count": grouped.count().head(10).to_dict(),
+                    }
+                }
+            )
